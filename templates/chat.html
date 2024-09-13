@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CuraAI - Medical Chatbot</title>
+
+    <!-- Link to Google Fonts for a fancy look -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400&display=swap">
+    
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-image: url('/static/images/medicalpicture.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #333;
+}
+
+.chat-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    width: 600px; /* Increase width */
+    height: 800px; /* Increase height */
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.chat-header {
+    background-color: #007bff;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 36px;
+    font-family: 'Playfair Display', serif; /* Fancy font for CuraAI */
+    font-weight: bold;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #ddd;
+}
+
+.chat-body {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    height: 600px; /* Adjust to fill more space for messages */
+}
+
+.chat-footer {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+.input-container {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.input-container textarea {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: none; /* Disable manual resizing */
+    height: 50px; /* Slightly increase default height */
+    max-height: 120px; /* Maximum height */
+    overflow-y: auto; /* Allow vertical scrolling */
+}
+
+.send-button {
+    background-color: #007bff;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.send-button:hover {
+    background-color: #0056b3;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.user-message {
+    text-align: right;
+    justify-content: flex-end;
+    color: black;
+}
+
+.bot-message {
+    text-align: left;
+    justify-content: flex-start;
+    color: white;
+}
+
+.message-text {
+    border-radius: 10px;
+    max-width: 70%;
+    word-wrap: break-word; /* Ensure long text wraps */
+}
+
+.user-message .message-text {
+    background-color: transparent;
+    color: black;
+}
+
+.bot-message .message-text {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+}
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        CuraAI
+    </div>
+
+    <div class="chat-body" id="chat-box">
+        <!-- The welcome message will be added here by JavaScript -->
+    </div>
+
+    <div class="chat-footer">
+        <div class="input-container">
+            <textarea id="user-input" placeholder="Ask me a medical question..."></textarea>
+        </div>
+        <button class="send-button" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    // Function to send the message
+    function sendMessage() {
+        const userInput = document.getElementById('user-input').value;
+        
+        if (userInput.trim() === '') {
+            alert("Please enter a message.");
+            return;
+        }
+
+        // Add the user's message to the chat
+        addMessageToChat(userInput, 'user-message');
+
+        // Clear the input field
+        document.getElementById('user-input').value = '';
+
+        // Send the message to the server
+        fetch('/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: userInput })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Add the bot's response to the chat
+            if (data.response) {
+                addMessageToChat(data.response, 'bot-message');
+            } else {
+                addMessageToChat('An error occurred. Please try again.', 'bot-message');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addMessageToChat('An error occurred. Please try again.', 'bot-message');
+        });
+    }
+
+    // Function to add messages to the chat window
+    function addMessageToChat(message, messageType) {
+        const chatBox = document.getElementById('chat-box');
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', messageType);
+
+        const messageHTML = `
+            <div class="message-text">${message}</div>
+        `;
+        messageElement.innerHTML = messageHTML;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;  // Auto-scroll to the bottom of the chat
+    }
+
+    // Add a welcome message when the page loads
+    window.onload = function() {
+        addMessageToChat("Welcome to CuraAI! I am your medical assistant. Ask me any health-related question.", 'bot-message');
+    }
+</script>
+
+</body>
+</html>
+
