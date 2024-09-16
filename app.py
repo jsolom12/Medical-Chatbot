@@ -19,14 +19,14 @@ PINECONE_ENV = os.getenv("PINECONE_ENV")
 if not PINECONE_API_KEY or not PINECONE_ENV:
     raise ValueError("Pinecone API key or environment is not set properly.")
 
-# Initialize Pinecone and LLM model outside the routes
+# Initializing the Pinecone and LLM model outside the routes
 index_name = "medchatbot"
 
 # Initialize Pinecone
 print(f"Initializing Pinecone index: {index_name}")
 initialize_pinecone(index_name)
 
-# Load the embedding model (e.g., Hugging Face model)
+# Loading the embedding model
 print("Loading the embedding model...")
 model_embedding = getModelEmbedding()
 
@@ -44,7 +44,7 @@ vectorstore = LangchainPinecone.from_existing_index(
     embedding=model_embedding
 )
 
-# Build the QA chain
+# Building  the QA chain
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm_model,
     chain_type="stuff",
@@ -54,7 +54,7 @@ qa_chain = RetrievalQA.from_chain_type(
 # Define the home route
 @app.route('/')
 def home():
-    return render_template('chat.html')  # 'chat.html' should be located in the 'templates' folder
+    return render_template('chat.html')  
 
 # API route to get a response from the chatbot
 @app.route('/ask', methods=['POST'])
